@@ -1,27 +1,10 @@
-#!/usr/bin/env python3
+# File: /stuff/laura/gitlab/infosec_ip_lookup/lib/__init__.py
 
-from .ip_info import get_ip_info
-from .formatters import display_results
-from .registry_lookup import RegistryLookup
-from .utils import (
-    safe_get,
-    validate_ip,
-    format_datetime,
-    convert_range_to_cidr,
-    is_private_ip,
-    format_threats
-)
+from .formatters import ResultFormatter
 
-__version__ = '1.0.0'
+# For backward compatibility
+def display_results(results):
+    formatter = ResultFormatter()
+    formatter.display_results(results)
 
-__all__ = [
-    'get_ip_info',
-    'display_results',
-    'RegistryLookup',
-    'safe_get',
-    'validate_ip',
-    'format_datetime',
-    'convert_range_to_cidr',
-    'is_private_ip',
-    'format_threats'
-]
+__all__ = ['ResultFormatter', 'display_results']

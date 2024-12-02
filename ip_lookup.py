@@ -1,13 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from security_monitor import SecurityAPIMonitor
 from lib.ip_info import get_ip_info
-from lib.formatters import display_results
+from lib.formatters import ResultFormatter  # Changed this line
 
 def setup_argparse():
+    """
+    Setup command line argument parsing.
+    """
     parser = argparse.ArgumentParser(
         description='Comprehensive IP Information Lookup Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -21,6 +24,9 @@ Examples:
 
     # Check IPs from file:
     python ip_lookup.py -f ip_list.txt
+
+    # Adjust worker count:
+    python ip_lookup.py -i 8.8.8.8 -w 1
     """
     )
 
@@ -36,6 +42,9 @@ Examples:
     return parser
 
 def read_ip_list(file_path):
+    """
+    Read IP addresses from file, one per line.
+    """
     try:
         with open(file_path, 'r') as f:
             return [line.strip() for line in f if line.strip()]
@@ -47,15 +56,20 @@ def read_ip_list(file_path):
         sys.exit(1)
 
 def process_ips_parallel(ips, security_monitor, max_workers=2):
+    """
+    Process IP lookups in parallel with a worker limit.
+    """
     results = []
-    max_workers = min(max_workers, 5)
+    max_workers = min(max_workers, 5)  # Cap at 5 workers to prevent rate limiting
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
         future_to_ip = {
             executor.submit(get_ip_info, ip, security_monitor): ip
             for ip in ips
         }
 
+        # Process results as they complete
         for future in future_to_ip:
             ip = future_to_ip[future]
             try:
@@ -72,7 +86,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        # Initialize security monitor (now uses environment variables)
+        # Initialize security monitor
         security_monitor = SecurityAPIMonitor()
 
         # Get list of IPs to process
@@ -94,9 +108,10 @@ def main():
             max_workers=args.workers
         )
 
-        # Display results
+        # Display results using ResultFormatter
         if results:
-            display_results(results)
+            formatter = ResultFormatter()  # Create formatter instance
+            formatter.display_results(results)  # Use the formatter to display results
         else:
             print("No results found.")
 
